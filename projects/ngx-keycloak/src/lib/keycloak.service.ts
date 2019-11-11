@@ -2,7 +2,7 @@ import { EventEmitter, Injectable } from "@angular/core";
 import { KeycloakInitOptions, KeycloakInstance } from "keycloak-js";
 import * as Keycloak_ from "keycloak-js";
 import { KeycloakOptions, KeycloakServiceConfiguration, KeycloakTokenPayload } from "./keycloak.models";
-import { Observable, of, throwError } from "rxjs";
+import { Observable, throwError } from "rxjs";
 import { fromPromise } from "rxjs/internal-compatibility";
 import { catchError, map } from "rxjs/operators";
 
@@ -17,11 +17,13 @@ export class KeycloakService {
 
     private static REFRESH_BEFORE = -1;
 
-    private authEvent: EventEmitter<boolean> = new EventEmitter<boolean>();
-
     public static configuration: KeycloakServiceConfiguration = null;
 
-    public static async initialize(options: KeycloakOptions): Promise<void> {
+    /**
+     * Initialize keycloak login session
+     * @param options options passed from environment or config file
+     */
+    public static initialize(options: KeycloakOptions): Promise<void> {
         options = KeycloakService.setDefaults(options);
 
         KeycloakService.REFRESH_BEFORE = options.refreshTokenBefore * 1000;
@@ -29,18 +31,18 @@ export class KeycloakService {
         const keycloakInstance: KeycloakInstance = KeycloakService.createInstance(options);
 
         const config: KeycloakInitOptions = {
-            promiseType: "native",
             onLoad: options.allowAnonymousAccess ? "check-sso" : "login-required"
         };
 
-        try {
-            await keycloakInstance.init(config);
-            KeycloakService.instance = keycloakInstance;
-            KeycloakService.setConfiguration(options);
-            KeycloakService.validateMinimalRequiredRole();
-        } catch (err) {
-            throw err;
-        }
+        return new Promise<void>((resolve, reject) => {
+            keycloakInstance.init(config).then(() => {
+                KeycloakService.instance = keycloakInstance;
+                KeycloakService.setConfiguration(options);
+                KeycloakService.validateMinimalRequiredRole();
+            }).catch((err) => {
+                reject(err);
+            });
+        });
     }
 
     private static validateMinimalRequiredRole(): boolean {
@@ -87,57 +89,60 @@ export class KeycloakService {
     }
 
     public refreshToken(): Observable<void> {
-        const payload = this.getTokenPayload<KeycloakTokenPayload>();
-        if (!payload) {
-            throwError(new Error("Can't read access token payload!"));
-        }
-
-        const iat = new Date(payload.iat * 1000);
-        const exp = new Date(payload.exp * 1000);
-        const now = new Date();
-
-        const timeUntilExpiry = exp.getTime() - now.getTime();
-        const validityTime = (exp.getTime() - iat.getTime()) * 2;
-
-        if (timeUntilExpiry <= KeycloakService.REFRESH_BEFORE) {
-            // token is about to expire
-            if (timeUntilExpiry > 0) {
-                // token is not yet expired
-                return fromPromise(KeycloakService.instance.updateToken(validityTime))
-                    .pipe(
-                        map(() => null),
-                        catchError((err) => {
-                            return throwError(err);
-                        })
-                    );
-            } else {
-                // access token has already expired
-                const refreshTokenPayload = this.getRefreshTokenPayload<KeycloakTokenPayload>();
-                if (!refreshTokenPayload) {
-                    throwError(new Error("Can't read refresh token payload!"));
-                }
-
-                const refreshExp = new Date(refreshTokenPayload.exp * 1000);
-                const timeUntilRefreshExpiry = refreshExp.getTime() - now.getTime();
-
-                if (timeUntilRefreshExpiry > KeycloakService.REFRESH_BEFORE) {
-                    // refresh token is still valid - update access token
-                    return fromPromise(KeycloakService.instance.updateToken(validityTime))
-                        .pipe(
-                            map(() => null),
-                            catchError((err) => {
-                                return throwError(err);
-                            })
-                        );
-                } else {
-                    // refresh token is about to expire, log out
-                    return throwError(new Error("Token is about to expire! Logging out..."));
-                }
+        return fromPromise(new Promise((resolve, reject) => {
+            const payload = this.getTokenPayload<KeycloakTokenPayload>();
+            if (!payload) {
+                reject(new Error("Can't read access token payload!"));
             }
-        } else {
-            // token is still valid
-            return of(null);
-        }
+
+            const iat = new Date(payload.iat * 1000);
+            const exp = new Date(payload.exp * 1000);
+            const now = new Date();
+
+            const timeUntilExpiry = exp.getTime() - now.getTime();
+            const validityTime = (exp.getTime() - iat.getTime()) * 2;
+
+            if (timeUntilExpiry <= KeycloakService.REFRESH_BEFORE) {
+                // token is about to expire
+                if (timeUntilExpiry > 0) {
+                    // token is not yet expired
+                    KeycloakService.instance.updateToken(validityTime).then(() => {
+                        resolve();
+                    }).catch(err => {
+                        reject(err);
+                    });
+                } else {
+                    // access token has already expired
+                    const refreshTokenPayload = this.getRefreshTokenPayload<KeycloakTokenPayload>();
+                    if (!refreshTokenPayload) {
+                        reject(new Error("Can't read refresh token payload!"));
+                    }
+
+                    const refreshExp = new Date(refreshTokenPayload.exp * 1000);
+                    const timeUntilRefreshExpiry = refreshExp.getTime() - now.getTime();
+
+                    if (timeUntilRefreshExpiry > KeycloakService.REFRESH_BEFORE) {
+                        // refresh token is still valid - update access token
+                        KeycloakService.instance.updateToken(validityTime).then(() => {
+                            resolve();
+                        }).catch(err => {
+                            reject(err);
+                        });
+                    } else {
+                        // refresh token is about to expire, log out
+                        reject(new Error("Token is about to expire! Logging out..."));
+                    }
+                }
+            } else {
+                // token is still valid
+                resolve();
+            }
+        })).pipe(
+            map(() => null),
+            catchError(err => {
+                return throwError(err);
+            })
+        );
     }
 
     /**
@@ -182,7 +187,6 @@ export class KeycloakService {
             }
         }
     }
-
 
     public getTokenPayload<P extends KeycloakTokenPayload>(): P {
         if (KeycloakService.instance && KeycloakService.instance.tokenParsed) {
