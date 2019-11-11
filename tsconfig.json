@@ -17,7 +17,15 @@
     "lib": [
       "es2018",
       "dom"
-    ]
+    ],
+    "paths": {
+      "ngx-keycloak": [
+        "dist/ngx-keycloak"
+      ],
+      "ngx-keycloak/*": [
+        "dist/ngx-keycloak/*"
+      ]
+    }
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,

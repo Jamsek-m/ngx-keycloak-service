@@ -120,6 +120,41 @@
           }
         }
       }
+    },
+    "ngx-keycloak": {
+      "projectType": "library",
+      "root": "projects/ngx-keycloak",
+      "sourceRoot": "projects/ngx-keycloak/src",
+      "prefix": "mj",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-ng-packagr:build",
+          "options": {
+            "tsConfig": "projects/ngx-keycloak/tsconfig.lib.json",
+            "project": "projects/ngx-keycloak/ng-package.json"
+          }
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "main": "projects/ngx-keycloak/src/test.ts",
+            "tsConfig": "projects/ngx-keycloak/tsconfig.spec.json",
+            "karmaConfig": "projects/ngx-keycloak/karma.conf.js"
+          }
+        },
+        "lint": {
+          "builder": "@angular-devkit/build-angular:tslint",
+          "options": {
+            "tsConfig": [
+              "projects/ngx-keycloak/tsconfig.lib.json",
+              "projects/ngx-keycloak/tsconfig.spec.json"
+            ],
+            "exclude": [
+              "**/node_modules/**"
+            ]
+          }
+        }
+      }
     }},
   "defaultProject": "keycloak-service"
 }

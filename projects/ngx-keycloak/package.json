@@ -1,0 +1,21 @@
+{
+    "name": "@mjamsek/ngx-keycloak-service",
+    "version": "0.0.1",
+    "description": "Library for integration with Keycloak authorization server",
+    "author": "Miha Jamšek <miha_jamsek@windowslive.com> (https://github.com/Jamsek-m)",
+    "maintainers": [
+        {
+            "name": "Miha Jamšek",
+            "email": "miha_jamsek@windowslive.com",
+            "url": "https://github.com/Jamsek-m"
+        }
+    ],
+    "peerDependencies": {
+        "@angular/common": "^8.2.8",
+        "@angular/core": "^8.2.8",
+        "keycloak-js": ">= 7.0.0"
+    },
+    "publishConfig": {
+        "registry": "https://nexus.mjamsek.com/repository/npm-snapshots/"
+    }
+}

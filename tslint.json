@@ -32,17 +32,7 @@
       140
     ],
     "member-access": false,
-    "member-ordering": [
-      true,
-      {
-        "order": [
-          "static-field",
-          "instance-field",
-          "static-method",
-          "instance-method"
-        ]
-      }
-    ],
+    "member-ordering": false,
     "no-consecutive-blank-lines": false,
     "no-console": [
       true,
@@ -70,7 +60,7 @@
     "ordered-imports": false,
     "quotemark": [
       true,
-      "single"
+      "double"
     ],
     "trailing-comma": false,
     "no-conflicting-lifecycle": true,
@@ -84,7 +74,21 @@
     "template-banana-in-box": true,
     "template-no-negated-async": true,
     "use-lifecycle-interface": true,
-    "use-pipe-transform-interface": true
+    "use-pipe-transform-interface": true,
+    "no-trailing-whitespace": false,
+    "indent": [
+      true,
+      "spaces",
+      4
+    ],
+    "semicolon": [
+      true,
+      "always"
+    ],
+    "whitespace": [
+      true,
+      "check-module"
+    ]
   },
   "rulesDirectory": [
     "codelyzer"
