@@ -1,4 +1,4 @@
-import { EventEmitter, Injectable } from "@angular/core";
+import { Injectable } from "@angular/core";
 import { KeycloakInitOptions, KeycloakInstance } from "keycloak-js";
 import * as Keycloak_ from "keycloak-js";
 import { KeycloakOptions, KeycloakServiceConfiguration, KeycloakTokenPayload } from "./keycloak.models";
@@ -31,7 +31,8 @@ export class KeycloakService {
         const keycloakInstance: KeycloakInstance = KeycloakService.createInstance(options);
 
         const config: KeycloakInitOptions = {
-            onLoad: options.allowAnonymousAccess ? "check-sso" : "login-required"
+            onLoad: options.allowAnonymousAccess ? "check-sso" : "login-required",
+            promiseType: "native"
         };
 
         return new Promise<void>((resolve, reject) => {
@@ -39,6 +40,7 @@ export class KeycloakService {
                 KeycloakService.instance = keycloakInstance;
                 KeycloakService.setConfiguration(options);
                 KeycloakService.validateMinimalRequiredRole();
+                resolve();
             }).catch((err) => {
                 reject(err);
             });
@@ -258,7 +260,7 @@ export class KeycloakService {
             allowAnonymousAccess: false,
             refreshTokenBefore: 30
         };
-        Object.keys(options).forEach(key => {
+        Object.keys(defaults).forEach(key => {
             if (!options.hasOwnProperty(key)) {
                 options[key] = defaults[key];
             }
