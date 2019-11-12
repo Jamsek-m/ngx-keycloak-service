@@ -10,7 +10,8 @@ export {
     ExtendedKeycloakTokenPayload,
     KeycloakServiceConfiguration,
     GuardRoles,
-    AccessRule
+    AccessRule,
+    KeycloakLib
 } from "./lib/keycloak.models";
 export { AuthGuard } from "./lib/auth.guard";
 export { RoleGuard } from "./lib/role.guard";

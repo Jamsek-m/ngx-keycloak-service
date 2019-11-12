@@ -1,13 +1,19 @@
 import { Injectable } from "@angular/core";
 import { KeycloakInitOptions, KeycloakInstance } from "keycloak-js";
 import * as Keycloak_ from "keycloak-js";
-import { KeycloakOptions, KeycloakServiceConfiguration, KeycloakTokenPayload } from "./keycloak.models";
+import {
+    KeycloakLib,
+    KeycloakOptions,
+    KeycloakServiceConfiguration,
+    KeycloakTokenPayload
+} from "./keycloak.models";
 import { Observable, throwError } from "rxjs";
 import { fromPromise } from "rxjs/internal-compatibility";
 import { catchError, map } from "rxjs/operators";
 
 const Keycloak = Keycloak_;
 
+// @dynamic
 @Injectable({
     providedIn: "root"
 })
@@ -39,15 +45,34 @@ export class KeycloakService {
             keycloakInstance.init(config).then(() => {
                 KeycloakService.instance = keycloakInstance;
                 KeycloakService.setConfiguration(options);
-                KeycloakService.validateMinimalRequiredRole();
                 resolve();
             }).catch((err) => {
-                reject(err);
+                reject({
+                    code: KeycloakLib.ErrorCode.KC_INIT_ERROR,
+                    err
+                } as KeycloakLib.Error);
             });
         });
     }
 
-    private static validateMinimalRequiredRole(): boolean {
+    /**
+     * Rejects promise if user lacks minimal required role
+     */
+    public static validateMinimalRequiredRole(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            const hasRole = KeycloakService.validateMinRequiredRole();
+            if (hasRole) {
+                resolve();
+            } else {
+                reject({
+                    code: KeycloakLib.ErrorCode.LACK_MIN_ROLE,
+                    err: new Error("User lacks minimum required role!")
+                } as KeycloakLib.Error);
+            }
+        });
+    }
+
+    private static validateMinRequiredRole(): boolean {
         const role = KeycloakService.configuration.minimalRequiredRole;
         if (!role) {
             return true;
@@ -94,7 +119,10 @@ export class KeycloakService {
         return fromPromise(new Promise((resolve, reject) => {
             const payload = this.getTokenPayload<KeycloakTokenPayload>();
             if (!payload) {
-                reject(new Error("Can't read access token payload!"));
+                reject({
+                    code: KeycloakLib.ErrorCode.TOKEN_PAYLOAD_UNREADABLE,
+                    err: new Error("Can't read access token payload!")
+                } as KeycloakLib.Error);
             }
 
             const iat = new Date(payload.iat * 1000);
@@ -111,13 +139,19 @@ export class KeycloakService {
                     KeycloakService.instance.updateToken(validityTime).then(() => {
                         resolve();
                     }).catch(err => {
-                        reject(err);
+                        reject({
+                            code: KeycloakLib.ErrorCode.KC_TOKEN_UPDATE_ERROR,
+                            err
+                        } as KeycloakLib.Error);
                     });
                 } else {
                     // access token has already expired
                     const refreshTokenPayload = this.getRefreshTokenPayload<KeycloakTokenPayload>();
                     if (!refreshTokenPayload) {
-                        reject(new Error("Can't read refresh token payload!"));
+                        reject({
+                            code: KeycloakLib.ErrorCode.TOKEN_PAYLOAD_UNREADABLE,
+                            err: new Error("Can't read refresh token payload!")
+                        } as KeycloakLib.Error);
                     }
 
                     const refreshExp = new Date(refreshTokenPayload.exp * 1000);
@@ -128,11 +162,17 @@ export class KeycloakService {
                         KeycloakService.instance.updateToken(validityTime).then(() => {
                             resolve();
                         }).catch(err => {
-                            reject(err);
+                            reject({
+                                code: KeycloakLib.ErrorCode.KC_TOKEN_UPDATE_ERROR,
+                                err
+                            } as KeycloakLib.Error);
                         });
                     } else {
                         // refresh token is about to expire, log out
-                        reject(new Error("Token is about to expire! Logging out..."));
+                        reject({
+                            code: KeycloakLib.ErrorCode.TOKEN_EXPIRED,
+                            err: new Error("Token is about to expire! Logging out...")
+                        } as KeycloakLib.Error);
                     }
                 }
             } else {

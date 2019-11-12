@@ -61,6 +61,20 @@ export interface ExtendedKeycloakTokenPayload extends KeycloakTokenPayload {
     email: string;
 }
 
+export namespace KeycloakLib {
+    export interface Error {
+        code: string;
+        err: any;
+    }
+    export enum ErrorCode {
+        TOKEN_EXPIRED = "token.expired",
+        KC_TOKEN_UPDATE_ERROR = "keycloak.token.update.error",
+        TOKEN_PAYLOAD_UNREADABLE = "token.payload.unreadable",
+        KC_INIT_ERROR = "keycloak.init.error",
+        LACK_MIN_ROLE = "minimal.role.forbidden"
+    }
+}
+
 export enum AccessRule {
     AND,
     OR
