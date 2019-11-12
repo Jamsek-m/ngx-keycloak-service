@@ -14,7 +14,7 @@ pipeline {
             steps {
                 git branch: "master",
                         credentialsId: "github-username",
-                        url: "https://github.com/Jamsek-m/ngx-config.git"
+                        url: "https://github.com/Jamsek-m/ngx-keycloak-service"
             }
         }
         stage("Set environment variables") {
@@ -32,11 +32,6 @@ pipeline {
                 }
             }
         }
-        /*stage("Execute tests") {
-            steps {
-                sh "npm run test:ci"
-            }
-        }*/
         stage("Deploy library") {
             steps {
                 withNPM(npmrcConfig: 'npm-snapshot-file') {

@@ -1,4 +1,5 @@
-# KeycloakService
+# @mjamsek/ngx-keycloak-service
+![Build Status](https://jenkins.mjamsek.com/buildStatus/icon?job=ngx-keycloak-service-lib)
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 8.3.2.
 
