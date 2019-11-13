@@ -5,6 +5,7 @@
 export { KeycloakService } from "./lib/keycloak.service";
 export { AuthInterceptor } from "./lib/auth.interceptor";
 export {
+    ForbiddenPageConfig,
     KeycloakOptions,
     KeycloakTokenPayload,
     ExtendedKeycloakTokenPayload,

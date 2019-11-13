@@ -19,14 +19,16 @@ export interface KeycloakOptions extends Object {
     };
 }
 
+export interface ForbiddenPageConfig {
+    url: string;
+    external?: boolean;
+}
+
 export interface KeycloakServiceConfiguration {
     allowAnonymousAccess: boolean;
     roleClients: string[];
     minimalRequiredRole?: string;
-    forbiddenPage?: {
-        url: string;
-        external?: boolean;
-    };
+    forbiddenPage?: ForbiddenPageConfig;
 }
 
 export interface KeycloakTokenPayload {
@@ -65,7 +67,9 @@ export namespace KeycloakLib {
     export interface Error {
         code: string;
         err: any;
+        extra?: any;
     }
+
     export enum ErrorCode {
         TOKEN_EXPIRED = "token.expired",
         KC_TOKEN_UPDATE_ERROR = "keycloak.token.update.error",

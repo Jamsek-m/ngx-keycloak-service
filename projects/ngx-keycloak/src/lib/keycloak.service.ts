@@ -66,7 +66,8 @@ export class KeycloakService {
             } else {
                 reject({
                     code: KeycloakLib.ErrorCode.LACK_MIN_ROLE,
-                    err: new Error("User lacks minimum required role!")
+                    err: new Error("User lacks minimum required role!"),
+                    extra: KeycloakService.configuration.forbiddenPage
                 } as KeycloakLib.Error);
             }
         });
