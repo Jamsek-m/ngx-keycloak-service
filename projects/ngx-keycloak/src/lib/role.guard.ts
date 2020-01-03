@@ -32,7 +32,10 @@ export class RoleGuard implements CanActivate {
             if (ownedRequiredRoles.length > 0) {
                 return true;
             } else {
-                if (KeycloakService.configuration.forbiddenPage.external) {
+
+                if (!KeycloakService.configuration.forbiddenPage) {
+                    this.router.navigate(["/403"]);
+                } else if (KeycloakService.configuration.forbiddenPage.external) {
                     window.location.href = KeycloakService.configuration.forbiddenPage.url;
                 } else {
                     this.router.navigate([KeycloakService.configuration.forbiddenPage.url]);
