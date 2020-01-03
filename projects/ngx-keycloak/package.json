@@ -2,7 +2,13 @@
     "name": "@mjamsek/ngx-keycloak-service",
     "version": "0.0.1",
     "description": "Library for integration with Keycloak authorization server",
+    "keywords": ["keycloak", "angular"],
     "author": "Miha Jamšek <miha_jamsek@windowslive.com> (https://github.com/Jamsek-m)",
+    "license": "MIT",
+    "repository": {
+        "type" : "git",
+        "url" : "https://github.com/Jamsek-m/ngx-keycloak-service"
+    },
     "maintainers": [
         {
             "name": "Miha Jamšek",
